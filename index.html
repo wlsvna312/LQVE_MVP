@@ -1,0 +1,1343 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LQVE - Demo MVP (Static Prototype)</title>
+  <style>
+    :root{
+      --bg:#0b0f19;
+      --card:#111827;
+      --muted:#94a3b8;
+      --text:#e5e7eb;
+      --line:#243041;
+      --accent:#ff4d8d;
+      --accent2:#7c3aed;
+      --good:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+      --radius2: 12px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Arial, "Apple SD Gothic Neo";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background: radial-gradient(1200px 600px at 30% -10%, rgba(255,77,141,.22), transparent 55%),
+                         radial-gradient(900px 500px at 90% 0%, rgba(124,58,237,.20), transparent 55%),
+                         var(--bg);
+      color:var(--text); font-family:var(--sans);
+    }
+    a{color:inherit}
+    .wrap{max-width:1100px; margin:0 auto; padding:18px 16px 90px;}
+    .top{
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      padding:10px 0 14px;
+    }
+    .brand{display:flex; gap:10px; align-items:center;}
+    .logo{
+      width:38px;height:38px;border-radius:12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: var(--shadow);
+      display:grid; place-items:center; font-weight:800;
+    }
+    .title{line-height:1.1}
+    .title b{display:block; font-size:15px}
+    .title span{display:block; font-size:12px; color:var(--muted)}
+    .pill{
+      border:1px solid rgba(148,163,184,.25);
+      background: rgba(17,24,39,.6);
+      padding:7px 10px; border-radius:999px; color:var(--muted); font-size:12px;
+      display:flex; gap:8px; align-items:center;
+    }
+    .grid{
+      display:grid; grid-template-columns: 1.1fr .9fr; gap:14px;
+    }
+    @media (max-width: 920px){ .grid{grid-template-columns:1fr; } }
+    .card{
+      background: rgba(17,24,39,.72);
+      border:1px solid rgba(148,163,184,.18);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(148,163,184,.14);
+      display:flex; gap:12px; align-items:flex-start; justify-content:space-between;
+    }
+    .card .hd h2{margin:0; font-size:15px}
+    .card .hd p{margin:6px 0 0; font-size:12px; color:var(--muted); max-width:70ch}
+    .card .bd{padding:14px}
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .btn{
+      border:1px solid rgba(148,163,184,.20);
+      background: rgba(2,6,23,.35);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-size:13px;
+      transition:.15s ease;
+      user-select:none;
+    }
+    .btn:hover{transform:translateY(-1px); border-color: rgba(255,77,141,.45)}
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(255,77,141,.95), rgba(124,58,237,.85));
+      border-color: transparent;
+      font-weight:700;
+    }
+    .btn.good{border-color: rgba(34,197,94,.45)}
+    .btn.warn{border-color: rgba(245,158,11,.45)}
+    .btn.bad{border-color: rgba(239,68,68,.45)}
+    .btn.ghost{background: transparent}
+    .btn.small{padding:7px 9px; font-size:12px; border-radius: 10px}
+    .tag{
+      font-size:12px; color:var(--muted);
+      border:1px solid rgba(148,163,184,.18);
+      background: rgba(2,6,23,.25);
+      padding:6px 9px; border-radius:999px;
+    }
+    .field{
+      display:grid; gap:6px; margin-bottom:10px;
+    }
+    .field label{font-size:12px; color:var(--muted)}
+    .input, select, textarea{
+      width:100%;
+      border-radius: 12px;
+      border:1px solid rgba(148,163,184,.20);
+      background: rgba(2,6,23,.35);
+      color:var(--text);
+      padding:10px 12px;
+      outline:none;
+      font-size:13px;
+    }
+    textarea{min-height:84px; resize:vertical}
+    .muted{color:var(--muted)}
+    .split{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    @media (max-width: 600px){ .split{grid-template-columns:1fr} }
+    .hr{height:1px;background: rgba(148,163,184,.14); margin:12px 0}
+    .toast{
+      position:fixed; left:50%; transform:translateX(-50%);
+      bottom:84px; z-index:50;
+      background: rgba(17,24,39,.92);
+      border:1px solid rgba(148,163,184,.22);
+      box-shadow: var(--shadow);
+      padding:10px 12px; border-radius: 14px;
+      max-width: calc(100vw - 22px);
+      display:none;
+      font-size:13px;
+    }
+    .toast.show{display:block; animation: pop .15s ease;}
+    @keyframes pop { from{transform:translateX(-50%) translateY(8px); opacity:.4;} to{transform:translateX(-50%) translateY(0); opacity:1;} }
+
+    /* App area */
+    .app{
+      min-height: 520px;
+      display:none;
+    }
+    .app.active{display:block}
+    .screen{display:none}
+    .screen.active{display:block}
+    .screen .sub{font-size:12px; color:var(--muted); margin-top:6px}
+    .nav{
+      position:fixed; left:0; right:0; bottom:0;
+      background: rgba(11,15,25,.9);
+      border-top:1px solid rgba(148,163,184,.18);
+      padding:10px 14px;
+      display:flex; justify-content:center; gap:16px; z-index:40;
+      backdrop-filter: blur(10px);
+    }
+    .heart{
+      width:54px; height:54px; border-radius: 18px;
+      background: linear-gradient(135deg, rgba(255,77,141,.95), rgba(124,58,237,.85));
+      display:grid; place-items:center;
+      box-shadow: var(--shadow);
+      cursor:pointer; user-select:none;
+      border:0;
+    }
+    .heart svg{filter: drop-shadow(0 5px 14px rgba(0,0,0,.4));}
+    .nav .mini{
+      color:var(--muted); font-size:12px; display:flex; align-items:center; gap:8px;
+      padding:10px 12px; border-radius: 14px;
+      border:1px solid rgba(148,163,184,.18);
+      background: rgba(17,24,39,.45);
+      cursor:pointer;
+    }
+    .nav .mini b{color:var(--text); font-weight:700}
+    .kpi{
+      display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;
+    }
+    @media (max-width: 600px){ .kpi{grid-template-columns:1fr} }
+    .kpi .box{
+      background: rgba(2,6,23,.22);
+      border:1px solid rgba(148,163,184,.16);
+      border-radius: 14px; padding:10px 12px;
+    }
+    .kpi .box .v{font-family:var(--mono); font-size:14px; margin-top:4px}
+    .chatWrap{display:grid; grid-template-columns: .95fr 1.05fr; gap:12px}
+    @media (max-width: 920px){ .chatWrap{grid-template-columns:1fr} }
+    .listItem{
+      border:1px solid rgba(148,163,184,.16);
+      background: rgba(2,6,23,.22);
+      border-radius: 14px;
+      padding:10px 12px;
+      cursor:pointer;
+    }
+    .listItem:hover{border-color: rgba(255,77,141,.35)}
+    .listItem .t{display:flex; justify-content:space-between; gap:10px; align-items:center}
+    .listItem .t b{font-size:13px}
+    .listItem .t span{font-size:12px; color:var(--muted)}
+    .listItem p{margin:6px 0 0; color:var(--muted); font-size:12px}
+    .msgBox{
+      height: 260px;
+      overflow:auto;
+      padding:10px;
+      border-radius: 14px;
+      border:1px solid rgba(148,163,184,.16);
+      background: rgba(2,6,23,.22);
+    }
+    .msg{
+      margin:8px 0;
+      display:flex; gap:8px;
+      align-items:flex-start;
+    }
+    .bubble{
+      max-width: 78%;
+      background: rgba(17,24,39,.7);
+      border:1px solid rgba(148,163,184,.16);
+      border-radius: 14px;
+      padding:8px 10px;
+      font-size:13px;
+    }
+    .bubble small{display:block; color:var(--muted); margin-top:4px; font-size:11px}
+    .me .bubble{
+      background: rgba(255,77,141,.12);
+      border-color: rgba(255,77,141,.25);
+      margin-left:auto;
+    }
+    .me{justify-content:flex-end}
+    .sys .bubble{
+      background: rgba(124,58,237,.10);
+      border-color: rgba(124,58,237,.25);
+      max-width: 92%;
+    }
+    .anon .bubble{
+      background: rgba(245,158,11,.10);
+      border-color: rgba(245,158,11,.25);
+      max-width: 92%;
+    }
+    .inline{
+      display:flex; gap:10px; align-items:center;
+    }
+    .timer{
+      font-family: var(--mono);
+      padding:6px 9px;
+      border-radius: 999px;
+      border:1px solid rgba(148,163,184,.18);
+      background: rgba(2,6,23,.25);
+      color: var(--text);
+      font-size:12px;
+    }
+    .notice{
+      padding:10px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(148,163,184,.16);
+      background: rgba(2,6,23,.22);
+      color: var(--muted);
+      font-size:12px;
+    }
+    .badge{
+      font-size:11px;
+      padding:5px 8px;
+      border-radius: 999px;
+      border:1px solid rgba(148,163,184,.18);
+      color: var(--muted);
+    }
+    .badge.good{border-color: rgba(34,197,94,.45); color: rgba(34,197,94,.95)}
+    .badge.warn{border-color: rgba(245,158,11,.45); color: rgba(245,158,11,.95)}
+    .badge.bad{border-color: rgba(239,68,68,.45); color: rgba(239,68,68,.95)}
+    .modal{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.55);
+      display:none; z-index:60;
+      align-items:center; justify-content:center;
+      padding:16px;
+    }
+    .modal.show{display:flex}
+    .modal .panel{
+      width:min(560px, 100%);
+      background: rgba(17,24,39,.92);
+      border:1px solid rgba(148,163,184,.20);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modal .panel .mh{
+      padding:12px 14px;
+      display:flex; justify-content:space-between; align-items:center;
+      border-bottom:1px solid rgba(148,163,184,.14);
+    }
+    .modal .panel .mh b{font-size:14px}
+    .modal .panel .mb{padding:14px}
+    .x{
+      border:1px solid rgba(148,163,184,.18);
+      background: rgba(2,6,23,.25);
+      color:var(--text);
+      width:34px; height:34px;
+      border-radius: 12px;
+      cursor:pointer;
+    }
+    .hint{font-size:12px;color:var(--muted); margin-top:6px}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="logo">LQ</div>
+        <div class="title">
+          <b>LQVE - Demo MVP</b>
+          <span>개발자 모집용 정적 프로토타입 (작동 시뮬레이션)</span>
+        </div>
+      </div>
+      <div class="pill">
+        <span id="envStatus">상태: 로그아웃</span>
+        <span class="tag" id="tierTag">서울 25구</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: App -->
+      <div class="card">
+        <div class="hd">
+          <div>
+            <h2>앱 화면 데모</h2>
+            <p>버튼을 눌러 흐름을 확인하세요. 실제 서버 기능(카카오/결제/실시간)은 프론트 시뮬레이션입니다.</p>
+          </div>
+          <div class="row">
+            <button class="btn small ghost" id="btnReset">초기화</button>
+            <button class="btn small" id="btnFastForward">시간 +6h</button>
+          </div>
+        </div>
+        <div class="bd app active" id="app">
+          <!-- Screen: Auth -->
+          <div class="screen active" id="screen-auth">
+            <div class="row">
+              <span class="tag">로그인/회원가입</span>
+              <span class="tag">Kakao OAuth (Demo)</span>
+              <span class="tag">온보딩 프로필</span>
+            </div>
+            <div class="hr"></div>
+            <p class="muted" style="margin:0 0 10px">
+              “카카오로 시작하기”를 누르면 프로필 작성으로 이동합니다.
+            </p>
+            <button class="btn primary" id="btnKakao">카카오로 시작하기</button>
+
+            <div class="hr"></div>
+            <div class="notice">
+              <b>목표</b>: 개발자에게 “흐름”을 직관적으로 보여주는 데모입니다.<br/>
+              <span class="muted">실제 구현 시: Kakao OAuth + 서버 세션 + DB 저장 + 재학 인증 검수 프로세스 필요</span>
+            </div>
+          </div>
+
+          <!-- Screen: Onboarding -->
+          <div class="screen" id="screen-onboarding">
+            <div class="row">
+              <span class="tag">프로필 작성</span>
+              <span class="tag">재학 인증</span>
+            </div>
+            <div class="hr"></div>
+
+            <div class="split">
+              <div class="field">
+                <label>닉네임</label>
+                <input class="input" id="fNick" placeholder="예: 윤현우" />
+              </div>
+              <div class="field">
+                <label>성별</label>
+                <select id="fGender">
+                  <option value="">선택</option>
+                  <option value="M">남</option>
+                  <option value="F">여</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="split">
+              <div class="field">
+                <label>나이</label>
+                <input class="input" id="fAge" type="number" min="18" max="34" placeholder="예: 24" />
+              </div>
+              <div class="field">
+                <label>학교</label>
+                <input class="input" id="fSchool" placeholder="예: 중앙대학교" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label>학교 소속 구 (서울 25개 구 중 선택)</label>
+              <select id="fGu"></select>
+            </div>
+
+            <div class="field">
+              <label>재학증명서 (Demo)</label>
+              <input class="input" id="fDoc" placeholder="업로드 완료라고 가정 (예: 2025-2 재학증명서)" />
+              <div class="hint">실제 서비스: 파일 업로드(S3) + 관리자 승인/반려 상태 필요</div>
+            </div>
+
+            <div class="split">
+              <div class="field">
+                <label>MBTI</label>
+                <input class="input" id="fMbti" placeholder="예: INFP" />
+              </div>
+              <div class="field">
+                <label>본인 얼굴상</label>
+                <select id="fFace"></select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>선호 얼굴상 (복수선택)</label>
+              <div class="row" id="prefFaces"></div>
+            </div>
+
+            <div class="row">
+              <button class="btn" id="btnBackToAuth">뒤로</button>
+              <button class="btn primary" id="btnCompleteProfile">프로필 저장 & 홈으로</button>
+            </div>
+          </div>
+
+          <!-- Screen: Home -->
+          <div class="screen" id="screen-home">
+            <div class="row" style="justify-content:space-between; width:100%">
+              <div class="row">
+                <span class="tag">홈</span>
+                <span class="tag" id="tagUser">게스트</span>
+                <span class="tag" id="tagVerified">재학: PENDING</span>
+              </div>
+              <div class="row">
+                <span class="badge" id="badgeSub">구독 없음</span>
+                <span class="badge" id="badgeTicket">티켓 0</span>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="kpi">
+              <div class="box">
+                <div class="muted">선택 구(최대 3)</div>
+                <div class="v" id="kpiGu">미선택</div>
+              </div>
+              <div class="box">
+                <div class="muted">채팅 보낸 횟수(현재 방)</div>
+                <div class="v" id="kpiMsgCnt">0</div>
+              </div>
+              <div class="box">
+                <div class="muted">미팅 시작 가능</div>
+                <div class="v" id="kpiMeetingAble">NO</div>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="row">
+              <button class="btn" id="btnBuy">매칭권 구매</button>
+              <button class="btn primary" id="btnMatch">매칭하기</button>
+              <button class="btn" id="btnInbox">채팅방 보관함</button>
+            </div>
+
+            <div class="hr"></div>
+            <div class="notice" id="homeNotice">
+              <b>안내</b>: 데모에서는 “재학 인증 승인”을 버튼으로 시뮬레이션합니다.
+              <div class="row" style="margin-top:10px">
+                <button class="btn small good" id="btnApprove">재학 승인(관리자)</button>
+                <button class="btn small bad" id="btnReject">재학 반려(관리자)</button>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+            <div class="notice" id="feedbackBanner" style="display:none">
+              <b>미팅은 재밌었나요?</b><br/>
+              혹시 아쉬웠다면 본인이 원하는 새로운 미션과 아쉬웠던 점을 적어주세요.
+              <div class="row" style="margin-top:10px">
+                <button class="btn primary small" id="btnOpenFeedback">피드백 작성</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Screen: Match -->
+          <div class="screen" id="screen-match">
+            <div class="row">
+              <span class="tag">매칭하기</span>
+              <span class="tag">지역 최대 3개 선택</span>
+              <span class="tag">2:2 / 3:3 / 4:4</span>
+            </div>
+            <div class="hr"></div>
+
+            <div class="notice">
+              <b>지역 선택</b>: 25개 구 중 최대 3개 선택 또는 “상관없음”
+              <div class="row" id="guSelect" style="margin-top:10px"></div>
+              <div class="row" style="margin-top:10px">
+                <button class="btn small" id="btnAnyGu">상관없음</button>
+                <button class="btn small ghost" id="btnClearGu">선택 초기화</button>
+              </div>
+              <div class="hint">선택한 구는 매칭 필터로 사용됩니다(데모는 시뮬레이션).</div>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="row">
+              <button class="btn" data-mode="2:2">2:2</button>
+              <button class="btn" data-mode="3:3">3:3</button>
+              <button class="btn" data-mode="4:4">4:4</button>
+            </div>
+
+            <div class="hr"></div>
+            <div class="row">
+              <button class="btn" id="btnBackHome1">홈으로</button>
+            </div>
+          </div>
+
+          <!-- Screen: Inbox + Chat -->
+          <div class="screen" id="screen-inbox">
+            <div class="row" style="justify-content:space-between; width:100%">
+              <div class="row">
+                <span class="tag">채팅방 보관함</span>
+                <span class="tag">Instagram DM 스타일</span>
+              </div>
+              <button class="btn small" id="btnBackHome2">홈으로</button>
+            </div>
+            <div class="hr"></div>
+
+            <div class="chatWrap">
+              <div>
+                <div class="notice" style="margin-bottom:10px">
+                  <b>룸 리스트</b><br/>
+                  매칭이 완료되면 채팅룸이 생성됩니다.
+                </div>
+                <div id="roomList"></div>
+              </div>
+
+              <div>
+                <div class="notice" style="margin-bottom:10px">
+                  <div class="t" style="display:flex; justify-content:space-between; gap:10px; align-items:center">
+                    <b id="chatRoomTitle">채팅룸을 선택하세요</b>
+                    <div class="inline">
+                      <span class="timer" id="chatTimer">--:--:--</span>
+                      <span class="badge" id="meetingBadge">미팅: 미시작</span>
+                    </div>
+                  </div>
+                  <div class="hint" id="chatMeta">프로필 열람: 메시지 3회 이상 / 미팅시작: 방 생성 6시간 후 활성화</div>
+                </div>
+
+                <div class="row" style="margin-bottom:10px; align-items:center">
+                  <button class="btn small" id="btnInvite">친구 초대</button>
+                  <button class="btn small" id="btnProfileView">이성 프로필 보기</button>
+                  <button class="btn small primary" id="btnMeetingStart">미팅시작</button>
+                </div>
+
+                <div class="msgBox" id="msgBox"></div>
+
+                <div class="row" style="margin-top:10px">
+                  <input class="input" id="msgInput" placeholder="메시지 입력 (보내면 내 전송횟수 +1)" />
+                  <button class="btn primary" id="btnSend">보내기</button>
+                </div>
+
+                <div class="hr"></div>
+                <div class="notice" id="missionPanel">
+                  <b>미션</b>: 미팅 시작 후 시간에 따라 오픈됩니다.
+                  <div class="row" style="margin-top:10px">
+                    <button class="btn small warn" id="btnOpenMission">현재 미션 보기</button>
+                  </div>
+                  <div class="hint">30m / 60m / 90m / 12h / (16h 피드백)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT: Spec / Notes -->
+      <div class="card">
+        <div class="hd">
+          <div>
+            <h2>기획 스펙 요약</h2>
+            <p>개발자에게 “무엇을 구현해야 하는지”를 한 화면에서 이해시키는 요약입니다.</p>
+          </div>
+          <span class="tag">v0.1</span>
+        </div>
+        <div class="bd">
+          <div class="notice">
+            <b>핵심 가치</b><br/>
+            매칭이 끝이 아니라, <b>실제 만남</b>에서 <b>미션</b>으로 만족도를 높이는 구조
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="notice">
+            <b>수익화</b><br/>
+            월 정액: 남 15,000 / 여 10,000<br/>
+            1회 매칭권: 2,500원<br/>
+            초대권: <b>월 1회 무료</b>, 2회부터 2,500원 또는 월정액
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="notice">
+            <b>권한 규칙(중요)</b><br/>
+            - 매칭하려면 구독 또는 티켓 필요<br/>
+            - 프로필 열람: <b>내가 보낸 메시지 3회 이상</b><br/>
+            - 미팅시작: <b>채팅방 생성 후 6시간 뒤 활성화</b><br/>
+            - 미션: 30m / 60m / 90m / 12h / 16h 피드백
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="notice">
+            <b>개발 시 필수</b><br/>
+            - 서버 권위 시간(타이머 조작 방지)<br/>
+            - 익명 메시지(수신자만) 처리<br/>
+            - 룸 소멸/접근 차단 정책<br/>
+            - 재학 인증(관리자 승인 플로우)<br/>
+            - 신고/차단(운영 안전장치)
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="row">
+            <button class="btn" id="btnGoAuth">로그인 화면</button>
+            <button class="btn" id="btnGoHome">홈 화면</button>
+            <button class="btn" id="btnGoInbox">채팅 보관함</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="nav">
+    <div class="mini" id="navStatus"><b>Demo</b> <span class="muted" id="navHint">하트=홈</span></div>
+    <button class="heart" id="navHeart" title="Home">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M12 21s-7-4.6-9.5-8.3C.6 9.7 2 6.8 4.7 6.1c1.6-.4 3.4.1 4.6 1.4L12 10l2.7-2.5c1.2-1.3 3-1.8 4.6-1.4 2.7.7 4.1 3.6 2.2 6.6C19 16.4 12 21 12 21z" fill="white"/>
+      </svg>
+    </button>
+    <div class="mini" id="navShortcuts"><span class="muted">바로가기</span> <b>구매/매칭/채팅</b></div>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal" id="modalBuy">
+    <div class="panel">
+      <div class="mh">
+        <b>매칭권 구매</b>
+        <button class="x" data-close="modalBuy">X</button>
+      </div>
+      <div class="mb">
+        <div class="notice">
+          <b>월 정액권</b><br/>
+          남 15,000 / 여 10,000 (Demo: 즉시 활성화)
+          <div class="row" style="margin-top:10px">
+            <button class="btn primary" id="btnSub">월 정액권 구매</button>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <div class="notice">
+          <b>1회 매칭권</b><br/>
+          2,500원 (Demo: 티켓 +1)
+          <div class="row" style="margin-top:10px">
+            <button class="btn" id="btnTicket">1회 매칭권 구매</button>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <div class="notice">
+          <b>초대권(월 1회 무료)</b><br/>
+          매칭권 없는 유저는 월 1회 무료 초대, 2회부터 2,500원 또는 월정액
+          <div class="row" style="margin-top:10px">
+            <button class="btn" id="btnInvitePass">초대권 결제(2,500)</button>
+          </div>
+        </div>
+        <div class="hint">상단 X 또는 하트 버튼으로 홈 복귀 가능(데모).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modalMission">
+    <div class="panel">
+      <div class="mh">
+        <b>현재 미션</b>
+        <button class="x" data-close="modalMission">X</button>
+      </div>
+      <div class="mb">
+        <div id="missionBody" class="notice"></div>
+        <div class="hr"></div>
+        <div id="missionAction" style="display:none">
+          <div class="field">
+            <label>대상 선택(데모)</label>
+            <select id="missionTarget"></select>
+          </div>
+          <div class="field" id="missionMsgField">
+            <label>메시지(익명)</label>
+            <textarea id="missionMsg" placeholder="메시지를 입력하세요"></textarea>
+          </div>
+          <div class="row">
+            <button class="btn primary" id="btnSubmitMission">제출</button>
+          </div>
+          <div class="hint">실제 서비스에서는 서버가 열림/닫힘을 권위 있게 관리해야 합니다.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modalFeedback">
+    <div class="panel">
+      <div class="mh">
+        <b>피드백</b>
+        <button class="x" data-close="modalFeedback">X</button>
+      </div>
+      <div class="mb">
+        <div class="field">
+          <label>만족도 (1~5)</label>
+          <select id="fbRating">
+            <option value="5">5 (매우 만족)</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+            <option value="1">1 (불만족)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>아쉬웠던 점</label>
+          <textarea id="fbText" placeholder="예: 미션이 너무 늦게 나와요 / 대화가 어색해요"></textarea>
+        </div>
+        <div class="field">
+          <label>원하는 새로운 미션</label>
+          <textarea id="fbMission" placeholder="예: 45분 시점에 아이스브레이킹 질문 미션 추가"></textarea>
+        </div>
+        <div class="row">
+          <button class="btn primary" id="btnSubmitFeedback">제출</button>
+        </div>
+        <div class="hint">피드백 데이터는 운영/성장에 핵심입니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  /***************
+   * Static Demo State
+   ***************/
+  const GUS = [
+    "강남구","강동구","강북구","강서구","관악구","광진구","구로구","금천구","노원구","도봉구",
+    "동대문구","동작구","마포구","서대문구","서초구","성동구","성북구","송파구","양천구","영등포구",
+    "용산구","은평구","종로구","중구","중랑구"
+  ];
+  const FACES = ["강아지상","고양이상","코뿔소상","토끼상","여우상","말상","곰상","오리상"];
+
+  const state = {
+    loggedIn: false,
+    user: {
+      nickname: "", gender: "", age: null, school: "", gu: "",
+      mbti: "", face: "", prefFaces: [],
+      verification: "PENDING" // PENDING / APPROVED / REJECTED
+    },
+    ent: {
+      subscribed: false,
+      tickets: 0,
+      inviteFreeRemaining: 1,  // 월 1회 무료 초대
+      invitePaidCredits: 0
+    },
+    match: {
+      selectedGus: [],
+      anyGu: false
+    },
+    rooms: [],
+    activeRoomId: null,
+    now: Date.now(), // demo clock
+  };
+
+  // Helpers
+  const $ = (id)=>document.getElementById(id);
+  function toast(msg){
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toast._tm);
+    toast._tm = setTimeout(()=>t.classList.remove("show"), 2200);
+  }
+  function fmtMs(ms){
+    const s = Math.max(0, Math.floor(ms/1000));
+    const hh = String(Math.floor(s/3600)).padStart(2,"0");
+    const mm = String(Math.floor((s%3600)/60)).padStart(2,"0");
+    const ss = String(s%60).padStart(2,"0");
+    return `${hh}:${mm}:${ss}`;
+  }
+  function showScreen(id){
+    document.querySelectorAll(".screen").forEach(el=>el.classList.remove("active"));
+    $(id).classList.add("active");
+    syncUI();
+  }
+  function openModal(id){ $(id).classList.add("show"); }
+  function closeModal(id){ $(id).classList.remove("show"); }
+
+  // Init selects
+  function initSelects(){
+    const guSel = $("fGu");
+    guSel.innerHTML = `<option value="">선택</option>` + GUS.map(g=>`<option value="${g}">${g}</option>`).join("");
+    const faceSel = $("fFace");
+    faceSel.innerHTML = `<option value="">선택</option>` + FACES.map(f=>`<option value="${f}">${f}</option>`).join("");
+    const pf = $("prefFaces");
+    pf.innerHTML = FACES.map(f=>`
+      <button class="btn small" data-face="${f}" type="button">${f}</button>
+    `).join("");
+    // Gu selector (match screen)
+    const gs = $("guSelect");
+    gs.innerHTML = GUS.map(g=>`<button class="btn small" data-gu="${g}" type="button">${g}</button>`).join("");
+  }
+
+  function syncTop(){
+    $("envStatus").textContent = state.loggedIn ? `상태: 로그인 (${state.user.nickname || "user"})` : "상태: 로그아웃";
+    $("tierTag").textContent = "서울 25구";
+  }
+
+  function syncHome(){
+    $("tagUser").textContent = state.user.nickname ? `${state.user.nickname} (${state.user.school || "학교 미입력"})` : "게스트";
+    $("tagVerified").textContent = `재학: ${state.user.verification}`;
+    $("badgeSub").textContent = state.ent.subscribed ? "구독 ON" : "구독 없음";
+    $("badgeSub").className = "badge " + (state.ent.subscribed ? "good" : "bad");
+    $("badgeTicket").textContent = `티켓 ${state.ent.tickets}`;
+    $("badgeTicket").className = "badge " + (state.ent.tickets>0 ? "good" : "bad");
+    $("kpiGu").textContent = state.match.anyGu ? "상관없음" : (state.match.selectedGus.length ? state.match.selectedGus.join(", ") : "미선택");
+    $("kpiMsgCnt").textContent = getActiveRoom()?.myMsgCount ?? 0;
+    $("kpiMeetingAble").textContent = canMeetingStart() ? "YES" : "NO";
+
+    // feedback banner
+    const r = getActiveRoom();
+    const shouldShowFeedback = !!(r && r.meetingStartedAt && (state.now - r.meetingStartedAt) >= 16*3600*1000);
+    $("feedbackBanner").style.display = shouldShowFeedback ? "block" : "none";
+  }
+
+  function syncMatch(){
+    // highlight selected gus
+    document.querySelectorAll("#guSelect [data-gu]").forEach(btn=>{
+      const g = btn.dataset.gu;
+      const active = state.match.selectedGus.includes(g);
+      btn.style.borderColor = active ? "rgba(255,77,141,.55)" : "rgba(148,163,184,.16)";
+      btn.style.background = active ? "rgba(255,77,141,.10)" : "rgba(2,6,23,.22)";
+    });
+  }
+
+  function syncRooms(){
+    const list = $("roomList");
+    if(state.rooms.length === 0){
+      list.innerHTML = `<div class="notice">아직 채팅방이 없습니다. 홈에서 “매칭하기”를 눌러 생성하세요.</div>`;
+      return;
+    }
+    list.innerHTML = state.rooms.map(r=>{
+      const left = r.expiresAt ? fmtMs(r.expiresAt - state.now) : "--:--:--";
+      const last = r.messages[r.messages.length-1]?.text ?? "대화가 아직 없습니다.";
+      return `
+        <div class="listItem" data-room="${r.id}">
+          <div class="t">
+            <b>${r.title}</b>
+            <span>${r.status}${r.meetingStartedAt ? " · 진행중" : ""}</span>
+          </div>
+          <p>${last}</p>
+          <p class="muted">남은 시간: ${left} · 생성 후 ${Math.floor((state.now-r.createdAt)/3600000)}h 경과</p>
+        </div>
+      `;
+    }).join("");
+
+    document.querySelectorAll("[data-room]").forEach(el=>{
+      el.onclick = ()=>{ state.activeRoomId = el.dataset.room; syncUI(); };
+    });
+  }
+
+  function syncChat(){
+    const r = getActiveRoom();
+    $("chatRoomTitle").textContent = r ? r.title : "채팅룸을 선택하세요";
+    $("msgInput").disabled = !r;
+    $("btnSend").disabled = !r;
+
+    if(!r){
+      $("chatTimer").textContent = "--:--:--";
+      $("meetingBadge").textContent = "미팅: 미시작";
+      $("meetingBadge").className = "badge";
+      $("msgBox").innerHTML = "";
+      $("btnMeetingStart").disabled = true;
+      $("btnProfileView").disabled = true;
+      $("btnInvite").disabled = true;
+      return;
+    }
+
+    // Timer shows remaining until expiry if meeting started, else show since created
+    if(r.meetingStartedAt){
+      $("chatTimer").textContent = fmtMs(r.expiresAt - state.now);
+      $("meetingBadge").textContent = "미팅: 시작됨";
+      $("meetingBadge").className = "badge good";
+    } else {
+      $("chatTimer").textContent = `+${fmtMs(state.now - r.createdAt)}`;
+      $("meetingBadge").textContent = "미팅: 미시작";
+      $("meetingBadge").className = "badge warn";
+    }
+
+    // buttons
+    $("btnInvite").disabled = false;
+    $("btnProfileView").disabled = !(r.myMsgCount >= 3);
+    $("btnMeetingStart").disabled = !canMeetingStart();
+
+    // message box
+    $("msgBox").innerHTML = r.messages.map(m=>{
+      const cls = m.type === "me" ? "msg me" : (m.type==="sys" ? "msg sys" : (m.type==="anon" ? "msg anon" : "msg"));
+      const who = m.type==="me" ? "나" : (m.type==="sys" ? "SYSTEM" : (m.type==="anon" ? "익명" : m.from));
+      return `
+        <div class="${cls}">
+          <div class="bubble">
+            <div><b>${who}</b> · ${new Date(m.at).toLocaleString("ko-KR")}</div>
+            <div style="margin-top:4px">${m.text}</div>
+            ${m.meta ? `<small>${m.meta}</small>` : ""}
+          </div>
+        </div>
+      `;
+    }).join("");
+    $("msgBox").scrollTop = $("msgBox").scrollHeight;
+  }
+
+  function syncUI(){
+    syncTop();
+    syncHome();
+    syncMatch();
+    syncRooms();
+    syncChat();
+    // nav hints
+    $("navHint").textContent = state.loggedIn ? "하트=홈 · 채팅=보관함" : "로그인 후 사용";
+  }
+
+  // Room / rules
+  function getActiveRoom(){
+    return state.rooms.find(r=>r.id === state.activeRoomId) || null;
+  }
+  function canMatch(){
+    if(state.user.verification !== "APPROVED") return {ok:false, msg:"재학 인증 승인 후 이용 가능합니다."};
+    if(state.ent.subscribed) return {ok:true};
+    if(state.ent.tickets > 0) return {ok:true};
+    return {ok:false, msg:"매칭 이용권을 결제해주세요!"};
+  }
+  function canMeetingStart(){
+    const r = getActiveRoom();
+    if(!r) return false;
+    if(r.meetingStartedAt) return false;
+    // activated 6 hours after room created
+    const sixH = 6*3600*1000;
+    return (state.now - r.createdAt) >= sixH;
+  }
+
+  // Missions
+  function getCurrentMission(room){
+    if(!room.meetingStartedAt) return null;
+    const dt = state.now - room.meetingStartedAt;
+
+    const m1 = 30*60*1000;
+    const m2 = 60*60*1000;
+    const m3 = 90*60*1000;
+    const m4 = 12*3600*1000;
+
+    if(dt < m1) return {type:"WAIT", title:"미션 대기", body:`첫 미션까지 남은 시간: ${fmtMs(m1-dt)}`};
+    if(dt >= m1 && dt < m2) return {type:"M1", title:"첫 미션 (30분)", body:"첫인상이 가장 마음에 들었던 분에게 익명 메시지를 남겨주세요. (신상 공개 여부 자유)"};
+    if(dt >= m2 && dt < m3) return {type:"M2", title:"두 번째 미션 (60분)", body:"지금 옆에 앉고 싶은 사람에게 메시지를 보내주세요. (수신자만 열람 / 익명)"};
+    if(dt >= m3 && dt < m4) return {type:"M3", title:"세 번째 미션 (90분)", body:"오늘 본인을 가장 설레게 했던 사람을 골라주세요. 결과는 ‘총 n쌍 상호지목’만 공개됩니다."};
+    // at/after 12h
+    return {type:"M4", title:"마지막 미션 (12시간)", body:"아직 마음을 표현하지 못 했나요? 이 채팅방은 곧 소멸됩니다. 마지막 익명 메시지를 전달해보세요."};
+  }
+
+  function computeMutualPairs(room){
+    // For demo: count mutual selections in room.m3Selections: {actor -> target}
+    const sel = room.m3Selections || {};
+    const used = new Set();
+    let pairs = 0;
+    for(const a in sel){
+      const b = sel[a];
+      if(!b) continue;
+      if(sel[b] === a){
+        const key = [a,b].sort().join("|");
+        if(!used.has(key)){ used.add(key); pairs++; }
+      }
+    }
+    return pairs;
+  }
+
+  // Demo actions
+  function createRoom(mode){
+    const roomId = "room_" + Math.random().toString(16).slice(2,10);
+    const title = `LQVE ${mode} · ${state.match.anyGu ? "상관없음" : (state.match.selectedGus.slice(0,3).join("/") || "지역미선택")}`;
+    const r = {
+      id: roomId,
+      title,
+      mode,
+      status: "ACTIVE",
+      createdAt: state.now,
+      meetingStartedAt: null,
+      expiresAt: null,
+      myMsgCount: 0,
+      messages: [
+        {type:"sys", at: state.now, text:`매칭 완료! 채팅방이 생성되었습니다. (데모)`, meta:`프로필 열람: 내 메시지 3회 / 미팅시작: 생성 후 6h`},
+      ],
+      members: ["나","A","B","C","D","E"], // demo pool
+      meetingStartConfirmed: {}, // demo
+      m3Selections: {}
+    };
+    // consume ticket if not subscribed
+    if(!state.ent.subscribed && state.ent.tickets > 0){
+      state.ent.tickets -= 1;
+      toast("1회 매칭권이 1개 사용되었습니다.");
+    }
+    state.rooms.unshift(r);
+    state.activeRoomId = r.id;
+  }
+
+  function expireRooms(){
+    // if meeting started and expired
+    state.rooms.forEach(r=>{
+      if(r.meetingStartedAt && r.expiresAt && state.now >= r.expiresAt){
+        r.status = "EXPIRED";
+      }
+    });
+  }
+
+  // Wiring
+  initSelects();
+
+  $("btnReset").onclick = ()=>{
+    // hard reset
+    location.reload();
+  };
+  $("btnFastForward").onclick = ()=>{
+    state.now += 6*3600*1000;
+    expireRooms();
+    toast("데모 시간 +6시간");
+    syncUI();
+  };
+
+  $("btnKakao").onclick = ()=>{
+    state.loggedIn = true;
+    toast("카카오 로그인 성공 (Demo)");
+    showScreen("screen-onboarding");
+  };
+
+  $("btnBackToAuth").onclick = ()=>showScreen("screen-auth");
+
+  $("btnCompleteProfile").onclick = ()=>{
+    const nick = $("fNick").value.trim();
+    const gender = $("fGender").value;
+    const age = Number($("fAge").value);
+    const school = $("fSchool").value.trim();
+    const gu = $("fGu").value;
+    const doc = $("fDoc").value.trim();
+    const mbti = $("fMbti").value.trim();
+    const face = $("fFace").value;
+    if(!nick || !gender || !age || !school || !gu || !doc || !mbti || !face){
+      toast("필수 항목을 입력하세요.");
+      return;
+    }
+    state.user.nickname = nick;
+    state.user.gender = gender;
+    state.user.age = age;
+    state.user.school = school;
+    state.user.gu = gu;
+    state.user.mbti = mbti;
+    state.user.face = face;
+
+    toast("프로필 저장 완료 (재학 인증: PENDING)");
+    showScreen("screen-home");
+  };
+
+  // Pref faces toggle
+  document.addEventListener("click", (e)=>{
+    const btn = e.target.closest("[data-face]");
+    if(btn){
+      const f = btn.dataset.face;
+      const idx = state.user.prefFaces.indexOf(f);
+      if(idx >= 0) state.user.prefFaces.splice(idx,1);
+      else state.user.prefFaces.push(f);
+      btn.style.borderColor = (idx<0) ? "rgba(255,77,141,.55)" : "rgba(148,163,184,.20)";
+      btn.style.background = (idx<0) ? "rgba(255,77,141,.10)" : "rgba(2,6,23,.35)";
+    }
+  });
+
+  // Admin approve / reject
+  $("btnApprove").onclick = ()=>{
+    state.user.verification = "APPROVED";
+    toast("재학 인증 승인됨 (Demo)");
+    syncUI();
+  };
+  $("btnReject").onclick = ()=>{
+    state.user.verification = "REJECTED";
+    toast("재학 인증 반려됨 (Demo)");
+    syncUI();
+  };
+
+  // Buy modal
+  $("btnBuy").onclick = ()=>openModal("modalBuy");
+  document.querySelectorAll("[data-close]").forEach(b=>{
+    b.onclick = ()=>closeModal(b.dataset.close);
+  });
+  $("btnSub").onclick = ()=>{
+    if(state.user.gender !== "M" && state.user.gender !== "F"){
+      toast("성별 입력 후 구매 가능(데모)");
+      return;
+    }
+    state.ent.subscribed = true;
+    toast("월 정액권 활성화 (Demo)");
+    syncUI();
+  };
+  $("btnTicket").onclick = ()=>{
+    state.ent.tickets += 1;
+    toast("1회 매칭권 +1 (Demo)");
+    syncUI();
+  };
+  $("btnInvitePass").onclick = ()=>{
+    state.ent.invitePaidCredits += 1;
+    toast("초대권 결제 완료(2,500) (Demo)");
+    syncUI();
+  };
+
+  // Home buttons
+  $("btnMatch").onclick = ()=>{
+    if(!state.loggedIn){ toast("로그인 후 이용"); return; }
+    showScreen("screen-match");
+  };
+  $("btnInbox").onclick = ()=>{
+    showScreen("screen-inbox");
+  };
+
+  // Match screen - gu selection
+  document.addEventListener("click", (e)=>{
+    const gbtn = e.target.closest("#guSelect [data-gu]");
+    if(gbtn){
+      const g = gbtn.dataset.gu;
+      state.match.anyGu = false;
+      const idx = state.match.selectedGus.indexOf(g);
+      if(idx >= 0){
+        state.match.selectedGus.splice(idx,1);
+      } else {
+        if(state.match.selectedGus.length >= 3){
+          toast("최대 3개 구까지만 선택 가능");
+          return;
+        }
+        state.match.selectedGus.push(g);
+      }
+      syncUI();
+    }
+  });
+
+  $("btnAnyGu").onclick = ()=>{
+    state.match.anyGu = true;
+    state.match.selectedGus = [];
+    toast("지역: 상관없음");
+    syncUI();
+  };
+  $("btnClearGu").onclick = ()=>{
+    state.match.anyGu = false;
+    state.match.selectedGus = [];
+    toast("지역 선택 초기화");
+    syncUI();
+  };
+
+  // Match mode buttons
+  document.querySelectorAll("[data-mode]").forEach(btn=>{
+    btn.onclick = ()=>{
+      const chk = canMatch();
+      if(!chk.ok){
+        toast(chk.msg);
+        return;
+      }
+      // Create room
+      createRoom(btn.dataset.mode);
+      toast("매칭 중입니다. 인연을 찾는 중이에요! (Demo → 즉시 매칭)");
+      showScreen("screen-inbox");
+      syncUI();
+    };
+  });
+
+  $("btnBackHome1").onclick = ()=>showScreen("screen-home");
+  $("btnBackHome2").onclick = ()=>showScreen("screen-home");
+
+  // Chat actions
+  $("btnSend").onclick = ()=>{
+    const r = getActiveRoom();
+    if(!r){ toast("채팅방을 선택하세요"); return; }
+    if(r.status === "EXPIRED"){ toast("채팅방이 소멸되었습니다."); return; }
+    const txt = $("msgInput").value.trim();
+    if(!txt) return;
+    r.messages.push({type:"me", at: state.now, text: txt});
+    r.myMsgCount += 1;
+    $("msgInput").value = "";
+    syncUI();
+  };
+
+  $("btnProfileView").onclick = ()=>{
+    const r = getActiveRoom();
+    if(!r) return;
+    if(r.myMsgCount < 3){
+      toast("프로필 열람은 내 메시지 3회 이상부터 가능합니다.");
+      return;
+    }
+    toast("프로필 열람 가능 (Demo) — 실제 구현 시 상세 프로필 API 권한 필요");
+  };
+
+  $("btnInvite").onclick = ()=>{
+    const r = getActiveRoom();
+    if(!r) return;
+
+    // Invite rule:
+    // if inviter has subscription -> ok
+    // else allow 1 free invite/month, from 2nd requires paid credit (2500) or subscription
+    if(state.ent.subscribed){
+      r.messages.push({type:"sys", at: state.now, text:"친구가 초대되었습니다. (구독 보유자: 초대 제한 완화) (Demo)"});
+      toast("초대 완료 (구독 보유)");
+      syncUI();
+      return;
+    }
+
+    if(state.ent.inviteFreeRemaining > 0){
+      state.ent.inviteFreeRemaining -= 1;
+      r.messages.push({type:"sys", at: state.now, text:"친구가 초대되었습니다. (월 1회 무료 초대 사용) (Demo)"});
+      toast("무료 초대 1회 사용");
+      syncUI();
+      return;
+    }
+
+    if(state.ent.invitePaidCredits > 0){
+      state.ent.invitePaidCredits -= 1;
+      r.messages.push({type:"sys", at: state.now, text:"친구가 초대되었습니다. (유료 초대권 사용) (Demo)"});
+      toast("유료 초대권 사용");
+      syncUI();
+      return;
+    }
+
+    toast("초대는 월 1회 무료, 2회부터는 2,500원 또는 월 정액권이 필요합니다.");
+  };
+
+  $("btnMeetingStart").onclick = ()=>{
+    const r = getActiveRoom();
+    if(!r) return;
+    if(r.status === "EXPIRED"){ toast("채팅방이 소멸되었습니다."); return; }
+    if(!canMeetingStart()){
+      toast("미팅시작은 채팅방 생성 6시간 후 활성화됩니다.");
+      return;
+    }
+    r.meetingStartedAt = state.now;
+    r.expiresAt = state.now + 12*3600*1000;
+    r.messages.push({type:"sys", at: state.now, text:"미팅이 시작되었습니다. 30분 후 첫 미션이 제공됩니다. (Demo)"});
+    toast("미팅 시작!");
+    syncUI();
+  };
+
+  $("btnOpenMission").onclick = ()=>{
+    const r = getActiveRoom();
+    if(!r){ toast("채팅방을 선택하세요"); return; }
+    if(r.status === "EXPIRED"){ toast("채팅방이 소멸되었습니다."); return; }
+
+    const m = getCurrentMission(r);
+    $("missionBody").innerHTML = `<b>${m.title}</b><div style="margin-top:8px">${m.body}</div>`;
+
+    const actionWrap = $("missionAction");
+    actionWrap.style.display = "none";
+
+    // set targets
+    const tgt = $("missionTarget");
+    tgt.innerHTML = r.members.filter(x=>x!=="나").map(x=>`<option value="${x}">${x}</option>`).join("");
+
+    // show action for missions except WAIT
+    if(m.type !== "WAIT"){
+      actionWrap.style.display = "block";
+      // show message field only for M1, M2, M4
+      $("missionMsgField").style.display = (m.type==="M3") ? "none" : "block";
+      $("btnSubmitMission").dataset.mtype = m.type;
+    }
+    openModal("modalMission");
+  };
+
+  $("btnSubmitMission").onclick = ()=>{
+    const r = getActiveRoom();
+    if(!r) return;
+    const mtype = $("btnSubmitMission").dataset.mtype;
+    const target = $("missionTarget").value;
+    const msg = $("missionMsg").value.trim();
+
+    if(mtype === "M3"){
+      r.m3Selections["나"] = target;
+      const pairs = computeMutualPairs(r);
+      r.messages.push({type:"anon", at: state.now, text:`(미션3) 선택 완료. 결과: 총 ${pairs}쌍이 서로를 지목했습니다. (Demo)`, meta:"누가 누구를 지목했는지는 비공개"});
+      toast("미션3 제출 완료");
+      closeModal("modalMission");
+      syncUI();
+      return;
+    }
+
+    if(!msg){
+      toast("메시지를 입력하세요.");
+      return;
+    }
+
+    // Add anonymous mission message
+    let label = "";
+    if(mtype==="M1") label = "첫인상 익명 메시지";
+    if(mtype==="M2") label = "옆에 앉고 싶은 사람 메시지(수신자만)";
+    if(mtype==="M4") label = "마지막 익명 메시지";
+    r.messages.push({type:"anon", at: state.now, text:`(${label}) ${target}에게: ${msg}`, meta:"익명 전달 (Demo)"});
+    $("missionMsg").value = "";
+    toast("미션 제출 완료");
+    closeModal("modalMission");
+    syncUI();
+  };
+
+  // Feedback
+  $("btnOpenFeedback").onclick = ()=>openModal("modalFeedback");
+  $("btnSubmitFeedback").onclick = ()=>{
+    const rating = $("fbRating").value;
+    const text = $("fbText").value.trim();
+    const mission = $("fbMission").value.trim();
+    toast(`피드백 제출 완료 (별점 ${rating})`);
+    // demo: write as system message in active room if exists
+    const r = getActiveRoom();
+    if(r){
+      r.messages.push({type:"sys", at: state.now, text:`피드백 제출됨 (Demo) · 별점 ${rating}`, meta:`아쉬움: ${text || "-"} / 새 미션: ${mission || "-"}`});
+    }
+    $("fbText").value = "";
+    $("fbMission").value = "";
+    closeModal("modalFeedback");
+    syncUI();
+  };
+
+  // Nav
+  $("navHeart").onclick = ()=>showScreen("screen-home");
+  $("navShortcuts").onclick = ()=>{
+    openModal("modalBuy");
+  };
+  $("navStatus").onclick = ()=>{
+    showScreen(state.loggedIn ? "screen-home" : "screen-auth");
+  };
+
+  // Right panel shortcuts
+  $("btnGoAuth").onclick = ()=>showScreen("screen-auth");
+  $("btnGoHome").onclick = ()=>showScreen("screen-home");
+  $("btnGoInbox").onclick = ()=>showScreen("screen-inbox");
+
+  // Default
+  showScreen("screen-auth");
+
+  // Tick loop to update timers
+  setInterval(()=>{
+    state.now += 1000;
+    expireRooms();
+    syncUI();
+  }, 1000);
+</script>
+</body>
+</html>
